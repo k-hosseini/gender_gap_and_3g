@@ -4,8 +4,8 @@ with open("README.md", "r", encoding="utf-8") as fh:
     long_description = fh.read()
 
 setuptools.setup(
-    name="gender_gap_3g",
-    version="0.0.1",
+    name="gender-gap-in-iran",
+    version="0.0.2",
     author="Kiarash Hosseini",
     author_email="k.hosseini1130@gmail.com",
     description="A small example package",
@@ -22,5 +22,5 @@ setuptools.setup(
     ],
     package_dir={"": "src"},
     packages=setuptools.find_packages(where="src"),
-    #python_requires=">=2.6",
+    python_requires=">=3",
 )
