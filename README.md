@@ -14,6 +14,8 @@ pip install --index-url https://test.pypi.org/simple/ --no-deps gender-gap-in-ir
 Iran political division maps
 
 ```python
+import gender_gaps 
+
 Iran_map = load_Iran_shape_files()
 ```
 
@@ -49,7 +51,6 @@ mylinkov_df = read_mylinkov(cells_path =[path])
 3G coverage map with different radius around each 3G cell. (the default value is 500)
 
 ```python
-import gender_gaps 
 gender_gaps.maps.coverage_map(UMTS_df = mylinkov , Cities = cities , radius=500)
 ```
 
