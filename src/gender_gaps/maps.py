@@ -27,30 +27,18 @@ Iran_shapefiles_paths['Cities']           = shp_files_path+r"\Cities.zip"
 
 
 
+# Defining location of shapefiles and datasets inside the package
 
 table_files_path = pkg_resources.resource_filename('gender_gaps', 'data\\tables')
-
 Cities_name_path = zipfile.ZipFile(table_files_path+"\\change_cities_name.zip").open('change_cities_name.xlsx')
-
 cells_path_glob = zipfile.ZipFile(table_files_path+"\\cell_1_percent.zip")
-
-
-# cells_path = Mylinkov+r'\Iran_V0.dta'
-
-# Mylinkov = r"C:\Users\khoss\Desktop\Files\Economics Data\3G\mylnikov\22-12-2019"
-# coverage_maps_path = Mylinkov+r"\Coverage_maps"
-
-# mylnikov_location_csv = Mylinkov+r"\ArcGIS_files\coverage_csv_by_quarter"
-
-
-
 
 
 
 
 
 # Loading Iran shapefiles
-def load_Iran_shape_files(*,Iran_shapefiles_paths = Iran_shapefiles_paths ,Cities_name_path = Cities_name_path  ):
+def load_Iran_shape_files(*,Iran_shapefiles_paths = Iran_shapefiles_paths ,Cities_name_path = Cities_name_path):
     Iran_shapefiles = {name:gpd.read_file(path).to_crs("EPSG:2058") for name, path in Iran_shapefiles_paths.items()}
     Iran_shapefiles["Cities"]["FID"] = np.arange(Iran_shapefiles["Cities"].shape[0])
 
@@ -73,12 +61,12 @@ def read_mylinkov(cells_path =cells_path_glob ):
 
 
 # Return coverage map using Cities shape file and Mylinkov Dataset
-def coverage_map(*,UMTS_df = read_mylinkov() , Cities = load_Iran_shape_files()["Cities"] , radious=500):
+def coverage_map(*,UMTS_df , Cities , radius=500):
     UMTS_gdf = gpd.GeoDataFrame(UMTS_df, geometry = gpd.points_from_xy(UMTS_df.lon,UMTS_df.lat) ,  crs='epsg:4326')
     UMTS_gdf = UMTS_gdf.to_crs("EPSG:2058")
     # Buffer around cells' location
     UMTS_buffered_gdf = UMTS_gdf
-    UMTS_buffered_gdf.geometry = UMTS_gdf.geometry.buffer(radious, 6)
+    UMTS_buffered_gdf.geometry = UMTS_gdf.geometry.buffer(radius, 6)
 
     # Dissolve
     UMTS_dissolved_gdf = UMTS_buffered_gdf
@@ -92,8 +80,8 @@ def coverage_map(*,UMTS_df = read_mylinkov() , Cities = load_Iran_shape_files()[
 
 
 # Return covered area and coverage map at the same time
-def covered_area(*,UMTS_df = read_mylinkov() ,Cities = load_Iran_shape_files()["Cities"] ,radious=500):
-    coverage_map_gdf = coverage_map(UMTS_df = UMTS_df, Cities = Cities ,radious=radious)
+def covered_area(*,UMTS_df ,Cities ,radius=500):
+    coverage_map_gdf = coverage_map(UMTS_df = UMTS_df, Cities = Cities ,radius=radius)
     covered_area_df =  pd.DataFrame(data ={'covered_area': coverage_map_gdf["geometry"].area/1e6 ,
             'CITY_ENG'  :coverage_map_gdf["CITY_ENG"],
             "CITY_NAME" :coverage_map_gdf["CITY_NAME"],
@@ -103,16 +91,16 @@ def covered_area(*,UMTS_df = read_mylinkov() ,Cities = load_Iran_shape_files()["
 
 
 # Calculate area of citie using Cities shape file
-def city_area(Cities = load_Iran_shape_files()["Cities"] ):
+def city_area(Cities ):
     return pd.DataFrame(data = {"city_area":Cities["geometry"].area/1e6,
                                      "CITY_ENG": Cities["CITY_ENG"],
                                      "CITY_NAME": Cities["CITY_NAME"],
                                      "OSTAN_NAME": Cities["OSTAN_NAME"]})
 
 # Returns coverage maps and coverage rates.
-def coverage_rate(* , UMTS_df = read_mylinkov() ,Cities = load_Iran_shape_files()["Cities"] ,radious=500):
-    city_area_df = city_area(Cities)
-    coverage_map_gdf , covered_area_df = covered_area(UMTS_df=UMTS_df,Cities=Cities,radious=radious)
+def coverage_rate(* , UMTS_df ,Cities ,radius=500):
+    city_area_df = city_area(Cities =Cities)
+    coverage_map_gdf , covered_area_df = covered_area(UMTS_df=UMTS_df,Cities=Cities,radius=radius)
     coverage_rate_df = pd.merge(covered_area_df , city_area_df, on=["CITY_ENG", "CITY_NAME" ,"OSTAN_NAME"] , how ="outer")    
     coverage_rate_df["coverage_rate"] = coverage_rate_df["covered_area"]/ coverage_rate_df["city_area"] 
     return (coverage_map_gdf , coverage_rate_df)
@@ -122,9 +110,9 @@ def coverage_rate(* , UMTS_df = read_mylinkov() ,Cities = load_Iran_shape_files(
 
 
 # Return coverage map and rate for each quarter in the period that UMTS_df is covering
-def cov_map_rate_period(* , UMTS_df= read_mylinkov() , Cities = load_Iran_shape_files()["Cities"] , radious=500 , frequesncy = 'Q'):
+def cov_map_rate_period(* , UMTS_df , Cities , radius=500 , frequency = 'Q'):
     # Coverage map for each date
-    dates = pd.period_range(str(UMTS_df['date_created'].min()), str(UMTS_df['date_created'].max()), freq=frequesncy)
+    dates = pd.period_range(str(UMTS_df['date_created'].min()), str(UMTS_df['date_created'].max()), freq=frequency)
     dates_len = len(dates)
     
     
@@ -133,7 +121,7 @@ def cov_map_rate_period(* , UMTS_df= read_mylinkov() , Cities = load_Iran_shape_
     
     # this must be changed
     for period in dates:
-        coverage_map_period , coverage_rate_period = coverage_rate(UMTS_df = UMTS_df.loc[UMTS_df['date_created'] < str(period)],Cities = Cities,radious=radious)    
+        coverage_map_period , coverage_rate_period = coverage_rate(UMTS_df = UMTS_df.loc[UMTS_df['date_created'] < str(period)],Cities = Cities,radius=radius)    
         # coverage_map_period:
         coverage_maps_period_dict[str(period)] = coverage_map_period
         
@@ -150,7 +138,7 @@ def cov_map_rate_period(* , UMTS_df= read_mylinkov() , Cities = load_Iran_shape_
 
 
 # Export coverage map png, gif and shp
-def export_maps(* , coverage_maps_period_dict = cov_map_rate_period()[0] , Country =load_Iran_shape_files()["Country"]  ):  
+def export_maps(* , coverage_maps_period_dict , Country ):
     images=[]
         # Create a new directory because it does not exist 
     if not os.path.exists("coverage_shape_files"):
