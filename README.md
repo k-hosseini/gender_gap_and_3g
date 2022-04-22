@@ -5,18 +5,32 @@ This package aims to prepare maps and dataframes which can be used to estimate t
 
 
 
-Installing the package:
+to install the package clone this repository, open the folder in the command prompt and run
+```
+python -m pip install gender_gaps
+```
+
+or:
 
 ```python
 pip install --index-url https://test.pypi.org/simple/ --no-deps gender-gap-in-iran
 ```
+and download the used datasets from [here](https://github.com/k-hosseini/gender_gap_and_3g/tree/master/src/gender_gaps/data) separately.
 
-Iran political division maps
+Iran political division maps:
 
 ```python
 import gender_gaps 
 
-Iran_map = load_Iran_shape_files()
+Iran_map = gender_gaps.maps.load_Iran_shape_files()
+# in the case that you separately downloaded the datasets, put path of shapefiles folder as input of this function
+
+```
+
+```python
+import gender_gaps 
+
+
 ```
 
 plot Iran maps
@@ -24,10 +38,10 @@ plot Iran maps
 ```python
 import geopandas as gpd
 
-country = Iran_map["Country"].plot()
-provinces = Iran_map["Provinces"].plot()
-counties = Iran_map["Counties"].plot()
-cities = Iran_map["Cities"].plot()
+country = gender_gaps.maps.Iran_map["Country"].plot()
+provinces = gender_gaps.maps.Iran_map["Provinces"].plot()
+counties = gender_gaps.maps.Iran_map["Counties"].plot()
+cities = gender_gaps.maps.Iran_map["Cities"].plot()
 ```
 
 total area of each city
@@ -38,12 +52,12 @@ city_area(cities)
 load .1 percent sample of Mylinkov Geo project
 
 ```python
-mylinkov_df = read_mylinkov()
+mylinkov_df = gender_gaps.maps.read_mylinkov() # in the case that you separately downloaded the datasets, put path of tables folder as input of this function
 ```
 or to use the original dataset, download  [Mylikov Geo project dataset](https://www.mylnikov.org/download) and set the path of the file as input of this function:
 
 ```python
-mylinkov_df = read_mylinkov(cells_path =[path])
+mylinkov_df = gender_gaps.maps.read_mylinkov(cells_path =[path])
 ```
 
 
